@@ -2,6 +2,7 @@ import React, { memo } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import logo from 'assets/img/capa.jpeg';
 import { Paper, TextField, Grid, Button } from '@material-ui/core';
+import trackFactory from 'services/track';
 
 const useStyles = makeStyles({
   container: {
@@ -19,6 +20,8 @@ const useStyles = makeStyles({
     height: 50
   }
 });
+
+trackFactory.identifyUser();
 
 export default memo(() => {
   const classes = useStyles({});

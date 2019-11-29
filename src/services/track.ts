@@ -31,22 +31,60 @@ class TrackService {
     this.focus$.subscribe();
   };
 
+  private watchEmail = (element: HTMLInputElement) =>
+    fromEvent(element, 'keyup').subscribe((element: any) => console.log(element.target.value));
+
+  private watchPhone = (element: HTMLInputElement) =>
+    fromEvent(element, 'keyup').subscribe((element: any) => console.log(element.target.value));
+
   private isEmail = () => {
     this.focus$
       .pipe(
-        filter(element => !!element && !!element.name),
-        filter(element => !!this.emailKeywords.find(keyword => element.name.includes(keyword)))
+        filter(
+          element => (!!element && !!element.name) || (!!element && !!element.type) || (!!element && !!element.id)
+        ),
+        filter(element => {
+          if (!!element.name && !!this.emailKeywords.find(keyword => element.name.includes(keyword))) {
+            return true;
+          }
+
+          if (!!element.id && !!this.emailKeywords.find(keyword => element.id.includes(keyword))) {
+            return true;
+          }
+
+          if (!!element.type && element.type === 'email') {
+            return true;
+          }
+
+          return false;
+        })
       )
-      .subscribe(() => console.log('isEmail'));
+      .subscribe(element => this.watchEmail(element));
   };
 
   private isPhone = () => {
     this.focus$
       .pipe(
-        filter(element => !!element && !!element.name),
-        filter(element => !!this.phoneKeywords.find(keyword => element.name.includes(keyword)))
+        filter(
+          element => (!!element && !!element.name) || (!!element && !!element.type) || (!!element && !!element.id)
+        ),
+        filter(element => {
+          if (!!element.name && !!this.phoneKeywords.find(keyword => element.name.includes(keyword))) {
+            return true;
+          }
+
+          if (!!element.id && !!this.phoneKeywords.find(keyword => element.id.includes(keyword))) {
+            return true;
+          }
+
+          if (!!element.type && element.type === 'tel') {
+            return true;
+          }
+
+          return false;
+        })
       )
-      .subscribe(() => console.log('isPhone'));
+      .subscribe(element => this.watchPhone(element));
   };
 
   private onFocus = (): Observable<HTMLInputElement> => {
