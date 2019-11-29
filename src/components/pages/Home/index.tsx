@@ -11,7 +11,10 @@ const useStyles = makeStyles({
   title: {
     textAlign: 'center'
   },
-  image: {},
+  image: {
+    maxWidth: '100%',
+    height: 'auto'
+  },
   paper: {
     padding: 16
   },
@@ -34,7 +37,7 @@ export default memo(() => {
             <h1 className={classes.title}>Preencha o formulário e ganhe um e-book grátis</h1>
             <form>
               <TextField id='nome' label='Nome' variant='outlined' fullWidth margin='normal' />
-              <TextField id='email' label='E-mail' variant='outlined' fullWidth margin='normal' />
+              <TextField id='email' label='E-mail' type='email' variant='outlined' fullWidth margin='normal' />
               <TextField id='telefone' label='Telefone' variant='outlined' fullWidth margin='normal' />
 
               <Button variant='contained' color='primary' fullWidth className={classes.button}>
