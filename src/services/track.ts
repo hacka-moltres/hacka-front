@@ -1,11 +1,23 @@
-import { Observable, fromEvent, BehaviorSubject, from } from 'rxjs';
-import { map, filter, distinctUntilChanged } from 'rxjs/operators';
+import { Observable, fromEvent, BehaviorSubject, from, of } from 'rxjs';
+import {
+  map,
+  filter,
+  distinctUntilChanged,
+  take,
+  debounceTime,
+  switchMap,
+  timeout,
+  withLatestFrom
+} from 'rxjs/operators';
 import uuid from 'uuid';
 import Fingerprint2 from 'fingerprintjs2';
+import apiService from './api';
+import { API_URL } from 'settings';
 
 interface ISession {
   sessionId: string;
-  fingerprint: string;
+  email: string;
+  phone: string;
   tags: string[];
 }
 
@@ -23,7 +35,8 @@ class TrackService {
   constructor() {
     this.session$.next({
       sessionId: uuid.v4(),
-      fingerprint: null,
+      email: null,
+      phone: null,
       tags: []
     });
 
@@ -35,36 +48,38 @@ class TrackService {
   }
 
   public identifyUser = () => {
-    this.focus$.subscribe();
+    this.session$
+      .pipe(
+        debounceTime(500),
+        switchMap(session => apiService.post(API_URL, session))
+      )
+      .subscribe(session => console.log(session));
+  };
+
+  private setSession = (newSession: Partial<ISession>) => {
+    this.session$
+      .pipe(
+        take(1),
+        map((session): ISession => ({ ...session, ...newSession }))
+      )
+      .subscribe(session => this.session$.next(session));
   };
 
   private getFingerprint = () => {
-    from(Fingerprint2.getPromise())
+    of(true)
       .pipe(
+        timeout(50),
+        switchMap(() => from(Fingerprint2.getPromise())),
         map(components => components.map(component => component.value)),
-        map(values => Fingerprint2.x64hash128(values.join(''), 31))
+        map(values => Fingerprint2.x64hash128(values.join(''), 31)),
+        withLatestFrom(this.session$)
       )
-      .subscribe(hash => console.log(hash));
+      .subscribe(([fingerprint, session]) => this.setSession({ tags: [...session.tags, fingerprint] }));
   };
 
-  private watchEmail = (element: HTMLInputElement) =>
-    fromEvent(element, 'keyup')
-      .pipe(
-        map(element => (element.target as HTMLInputElement).value),
-        filter(email => emailRegex.test(email)),
-        distinctUntilChanged((a, b) => a === b)
-      )
-      .subscribe(email => console.log(email));
-
-  private watchPhone = (element: HTMLInputElement) =>
-    fromEvent(element, 'keyup')
-      .pipe(
-        map(element => (element.target as HTMLInputElement).value),
-        filter(phone => phoneRegex.test(phone)),
-        filter(phone => phone.length > 7),
-        distinctUntilChanged()
-      )
-      .subscribe(phone => console.log(phone));
+  private onFocus = (): Observable<HTMLInputElement> => {
+    return fromEvent(document, 'click').pipe(map(() => document.activeElement as HTMLInputElement));
+  };
 
   private isEmail = () => {
     this.focus$
@@ -89,6 +104,16 @@ class TrackService {
         })
       )
       .subscribe(element => this.watchEmail(element));
+  };
+
+  private watchEmail = (element: HTMLInputElement) => {
+    fromEvent(element, 'keyup')
+      .pipe(
+        map(element => (element.target as HTMLInputElement).value),
+        filter(email => emailRegex.test(email)),
+        distinctUntilChanged((a, b) => a === b)
+      )
+      .subscribe(email => this.setSession({ email }));
   };
 
   private isPhone = () => {
@@ -116,9 +141,17 @@ class TrackService {
       .subscribe(element => this.watchPhone(element));
   };
 
-  private onFocus = (): Observable<HTMLInputElement> => {
-    return fromEvent(document, 'click').pipe(map(() => document.activeElement as HTMLInputElement));
+  private watchPhone = (element: HTMLInputElement) => {
+    fromEvent(element, 'keyup')
+      .pipe(
+        map(element => (element.target as HTMLInputElement).value),
+        filter(phone => phoneRegex.test(phone)),
+        filter(phone => phone.length > 7),
+        distinctUntilChanged()
+      )
+      .subscribe(phone => this.setSession({ phone }));
   };
 }
+
 const trackFactory = new TrackService();
 export default trackFactory;

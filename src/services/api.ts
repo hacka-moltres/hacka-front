@@ -6,6 +6,11 @@ export class ApiService {
     return response.data.results;
   }
 
+  public async post(url: string, params: any): Promise<any> {
+    const response = await this.request('POST', url, params);
+    return response.data.results;
+  }
+
   private async request(method: Method, url: string, data: any = null): Promise<AxiosResponse> {
     try {
       const response = await axios.request({
