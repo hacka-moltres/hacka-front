@@ -1,9 +1,8 @@
-import React, { memo, useEffect, useCallback } from 'react';
+import React, { memo } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import logo from 'assets/img/capa.jpeg';
 import { Paper, TextField, Grid, Button } from '@material-ui/core';
 import trackFactory from 'services/track';
-import Fingerprint2 from 'fingerprintjs2';
 
 const useStyles = makeStyles({
   container: {
@@ -29,18 +28,6 @@ trackFactory.identifyUser();
 
 export default memo(() => {
   const classes = useStyles({});
-
-  const callFingerprint = useCallback(async () => {
-    const components: { key: string; value: any }[] = await Fingerprint2.getPromise({});
-    const values = components.map((component: any) => component.value);
-    const hash = Fingerprint2.x64hash128(values.join(''), 31);
-    console.log(components);
-    console.log(hash);
-  }, []);
-
-  useEffect(() => {
-    callFingerprint();
-  }, [callFingerprint]);
 
   return (
     <div className={classes.container}>

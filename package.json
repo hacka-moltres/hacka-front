@@ -32,6 +32,7 @@
     "uuid": "^3.3.3"
   },
   "devDependencies": {
+    "@types/fingerprintjs2": "^2.0.0",
     "@types/jest": "^24.0.18",
     "@types/lodash": "^4.14.138",
     "@types/node": "^12.7.5",

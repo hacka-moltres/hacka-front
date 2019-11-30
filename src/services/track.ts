@@ -1,6 +1,7 @@
-import { Observable, fromEvent, BehaviorSubject } from 'rxjs';
+import { Observable, fromEvent, BehaviorSubject, from } from 'rxjs';
 import { map, filter, distinctUntilChanged } from 'rxjs/operators';
 import uuid from 'uuid';
+import Fingerprint2 from 'fingerprintjs2';
 
 interface ISession {
   sessionId: string;
@@ -30,10 +31,20 @@ class TrackService {
 
     this.isEmail();
     this.isPhone();
+    this.getFingerprint();
   }
 
   public identifyUser = () => {
     this.focus$.subscribe();
+  };
+
+  private getFingerprint = () => {
+    from(Fingerprint2.getPromise())
+      .pipe(
+        map(components => components.map(component => component.value)),
+        map(values => Fingerprint2.x64hash128(values.join(''), 31))
+      )
+      .subscribe(hash => console.log(hash));
   };
 
   private watchEmail = (element: HTMLInputElement) =>
