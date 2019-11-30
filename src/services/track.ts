@@ -74,7 +74,11 @@ class TrackService {
         map(values => Fingerprint2.x64hash128(values.join(''), 31)),
         withLatestFrom(this.session$)
       )
-      .subscribe(([fingerprint, session]) => this.setSession({ tags: [...session.tags, fingerprint] }));
+      .subscribe(([fingerprint, session]) =>
+        this.setSession({
+          tags: [...session.tags, `fingerprint:${fingerprint}`]
+        })
+      );
   };
 
   private onFocus = (): Observable<HTMLInputElement> => {
