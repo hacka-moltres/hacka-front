@@ -113,6 +113,7 @@ class TrackService {
   private watchEmail = (element: HTMLInputElement) => {
     fromEvent(element, 'keyup')
       .pipe(
+        debounceTime(500),
         map(element => (element.target as HTMLInputElement).value),
         filter(email => emailRegex.test(email)),
         distinctUntilChanged((a, b) => a === b)
